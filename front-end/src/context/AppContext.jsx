@@ -1,10 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { createContext } from 'react';
 import api from '../api/api'
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AppContext = createContext(undefined)
 
-export function AppContextProvider({children}){
+export function AppContextProvider({children}){ 
+    
+    const navigate = useNavigate()
 
 //Auth states
  const [user, setUser] = useState(null)
@@ -26,10 +30,39 @@ useEffect(() => {
     checkSession()
 }, [checkSession]);
 
+     const login = async (email, password) => {
+        try {
+            const { data } = await api.post("/api/auth/login", (email, password));
+            setUser(data.user);
+            toast.success('Welcome Back!')
+            navigate("/")
+        } catch (err) {
+           console.error('login failed:', err);
+           const errMsg = err?.response?.data?.error || 'invalid email or password';
+           toast.error(errMsg);
+           throw new Error(errMsg);
+        }
+     }
+
+    const register = async (name, email, password) => {
+        try {
+            const { data } = await api.post("/api/auth/register", { name, email, password });
+            setUser(data.user);
+            toast.success('Account creates successfully!')
+            navigate("/")
+        } catch (err) {
+           console.error('Registration failed:', err);
+           const errMsg = err?.response?.data?.error || 'Registration failed';
+           toast.error(errMsg);
+           throw new Error(errMsg);
+        }
+     }
     return (
       <AppContext.Provider value={{
         user,
-        loadingUser
+        loadingUser,
+        login,
+        register
       }}>
           {children}
       </AppContext.Provider>

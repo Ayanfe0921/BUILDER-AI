@@ -1,10 +1,12 @@
 import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, Navigate } from 'react-router-dom'
 import AuthPage from './pages/AuthPage'
+import LoginLeft from './components/LoginLeft'
 import {GuestLayout, AuthLayout} from './pages/Layout'
 import HomePage from './pages/HomePage'
 import BuilderPage from './pages/BuilderPage'
 import PreviewPage from './pages/PreviewPage'
+
 
 const App = () => {
   return (
@@ -21,6 +23,11 @@ const App = () => {
         <Route path="/builder/:id" element={<BuilderPage/>} />
         <Route path="/preview/:id" element={<PreviewPage/>} />
       </Route>
+
+
+{/*Catch all */}
+ <Route path='*' element={<Navigate to="/" replace />} />
+
     </Routes>
   )
 }

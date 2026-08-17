@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import LoginLeft from '../components/LoginLeft';
 import { Link, useNavigate } from 'react-router-dom';
-import { EyeIcon, EyeOffIcob, Loader2Icon } from 'lucide-react'
-import { AppContext } from '../context/AppContext'
+import { EyeIcon, EyeOffIcon, Loader2Icon } from 'lucide-react'
+import { useAppContext } from '../context/AppContext'
 
 const AuthPage = ({mode}) => {
 
@@ -25,7 +25,7 @@ const AuthPage = ({mode}) => {
 
      try{
       if(mode === 'login'){
-        awaitnlogin(email, password)
+        await login(email, password)
       }else{
         await register(name, email, password)
       }
@@ -96,7 +96,7 @@ const AuthPage = ({mode}) => {
           <p className='text-sm text-zinc-400 mt-8 pt-6 border-t border-zinc-100 font-sans'>
             {isLogin ? (
               <>
-               New to BuilderAI?{" "}
+               New to Code-Builder?{" "}
                <Link to="/register" className="text-zinc-900 font-medium hover:underline">
                 Create an account
                </Link>

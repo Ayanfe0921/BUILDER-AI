@@ -1,34 +1,37 @@
 import React from 'react'
 import { Route, Routes, Navigate } from 'react-router-dom'
 import AuthPage from './pages/AuthPage'
-import LoginLeft from './components/LoginLeft'
 import {GuestLayout, AuthLayout} from './pages/Layout'
 import HomePage from './pages/HomePage'
 import BuilderPage from './pages/BuilderPage'
 import PreviewPage from './pages/PreviewPage'
-
+import { Toaster } from 'react-hot-toast'
 
 const App = () => {
   return (
+    <>
+    <Toaster />
     <Routes> 
       {/* login Routes*/}
-     <Route element={< GuestLayout />}>
+     <Route >
        <Route path="/login" element={<AuthPage mode="login" />} />
        <Route path="/register" element={<AuthPage mode="register" />} />
      </Route>
 
        {/*protected Routes */}
-      <Route element={< AuthLayout />}>
-        <Route path="/" element={<HomePage />} />
+        <Route element={< AuthLayout />}>
+         <Route path="/" element={<HomePage />} />
         <Route path="/builder/:id" element={<BuilderPage/>} />
         <Route path="/preview/:id" element={<PreviewPage/>} />
-      </Route>
+      </Route> 
 
 
-{/*Catch all */}
- <Route path='*' element={<Navigate to="/" replace />} />
+      {/*Catch all */}
+       <Route path='*' element={<Navigate to="/" replace />} /> 
 
-    </Routes>
+     </Routes>
+    </>
+
   )
 }
 

@@ -5,7 +5,7 @@ const LoginLeft = () => {
   return (
     <div className="hidden lg:flex lg:w-2/5 bg-[url('/bg-img.png')] bg-cover bg-center bg-no-repeat flex-col justify-between p-12 shrink-0 select-none">
       <div className='flex items-center gap-3'>
-        <img src="/logo(1).svg" alt="logo" className='size-9.5' />
+        <img src="/logo (1).svg" alt="logo" className='size-9.5' />
         <span className='text-4xl font-medium text-white'>Code-Builder</span>
       </div>
       <div>

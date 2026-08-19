@@ -1,4 +1,7 @@
-import { detectDependencies } from "./sandpackUtils";
+export function detectDependencies(fileMap) {
+    const dependencies = {};
+    return dependencies;
+}
 
 export async function exportProjectZip(project) {
     if (!project) return;

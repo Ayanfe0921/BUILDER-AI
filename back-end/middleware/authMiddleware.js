@@ -1,38 +1,38 @@
-// import "dotenv/config";
-// import jwt from 'jsonwebtoken'
+import "dotenv/config";
+import jwt from 'jsonwebtoken'
 
-// // export function authMiddleware(req, res, next){
-// //     const token = req.cookies.token;
+export function authMiddleware(req, res, next){
+    const token = req.cookies.token;
 
-// //     if(!token){
-// //       return  res.status(401).json({ error: "Access denied. no session token provided."});
-// //     }
-
-// //     try {
-// //         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-// //         req.user = decoded;
-// //         next()
-// //     } catch (err) {
-// //         res.status(401).json({ error: "Session expired or invalid. please sign in again." });
-// //     }
-// // }
-
- import "dotenv/config";
- import jwt from 'jsonwebtoken';
-
-export function authMiddleware(req, res, next) {
-    const token = req.cookies?.token;
-
-    if (!token) {
-        return res.status(401).json({ error: "Access denied. No session token provided." });
+    if(!token){
+      return  res.status(401).json({ error: "Access denied. no session token provided."});
     }
 
     try {
-        const secret = process.env.JWT_SECRET || "fallback_secret";
-        const decoded = jwt.verify(token, secret);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
         req.user = decoded;
-        next();
+        next()
     } catch (err) {
-        return res.status(401).json({ error: "Session expired or invalid. Please sign in again." });
+        res.status(401).json({ error: "Session expired or invalid. please sign in again." });
     }
 }
+
+//  import "dotenv/config";
+//  import jwt from 'jsonwebtoken';
+
+// export function authMiddleware(req, res, next) {
+//     const token = req.cookies?.token;
+
+//     if (!token) {
+//         return res.status(401).json({ error: "Access denied. No session token provided." });
+//     }
+
+//     try {
+//         const secret = process.env.JWT_SECRET || "fallback_secret";
+//         const decoded = jwt.verify(token, secret);
+//         req.user = decoded;
+//         next();
+//     } catch (err) {
+//         return res.status(401).json({ error: "Session expired or invalid. Please sign in again." });
+//     }
+// }

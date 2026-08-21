@@ -171,9 +171,18 @@ if(!project){
   return;
 }
 
+
+// const filesObj = {};
+// for (const [path, entry] of Object.entries(project.files)) {
+//   filesObj[path] = entry.content;
+// }
+
+// ✅ FIXED
 const filesObj = {};
-for (const [path, entry] of Object.entries(project.files)) {
-  filesObj[path] = emtry.content;
+if (project.files) {
+  for (const [path, entry] of Object.entries(project.files)) {
+    filesObj[path] = entry?.content || "";
+  }
 }
 
 res.json({
@@ -181,7 +190,7 @@ res.json({
    name: project.name,
    description: project.description,
    files: filesObj,
-   messages: project.messages,
+   messages: project.message,
    version: project.version,
    status: project.status,
    filesPlanned: project.filesPlanned,

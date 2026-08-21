@@ -3,6 +3,7 @@
 
 @theme {
   --font-sans: 'Urbanist', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
 }
 
 /* Base */

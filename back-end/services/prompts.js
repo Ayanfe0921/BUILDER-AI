@@ -1,116 +1,91 @@
-import crypto from "crypto";
+// import { z } from "zod";
 
-export function hashContent(content) {
-    return crypto.createHash("md5").update(content).digest("hex").slice(0, 12);
-}
 
-// Apply AI file operations (create, update, delete) to project files
-export function applyOperations(currentFiles, operations) {
-    const files = { ...currentFiles };
-    const applied = [];
-    const errors = [];
+// export const GenerationResultSchema = z.object({
+//     files: z.record(z.string(),  z.string()),
+//     description: z.string().default('Generated project')
+// })
 
-    for (const op of operations) {
-        try {
-            switch (op.op) {
-                case "create": {
-                    if (!op.content) {
-                        errors.push(`create ${op.path}: missing content`);
-                        break;
-                    }
-                    files[op.path] = {
-                        content: op.content,
-                        hash: hashContent(op.content),
-                    };
-                    applied.push(`created ${op.path}`);
-                    break;
-                }
+// export const FileOpSchema = z.object({
+//     op: z.enum(["create", "update", "delete"]),
+//     path: z.string(),
+//     content: z.string().nullable().optional(),
+//     search: z.string().nullable().optional(),
+//     replace: z.string().nullable().optional(),
+// })
 
-                case "update": {
-                    const existing = files[op.path];
-                    if (!existing) {
-                        errors.push(`update ${op.path}: file not found`);
-                        break;
-                    }
-                    if (!op.search || op.replace == null) {
-                        errors.push(`update ${op.path}: missing search/replace`);
-                        break;
-                    }
+// export const RevisionResultSchema = z.object({
+//     operations: z.array(FileOpSchema),
+//     description: z.string().default('Applied revisions')
+// })
 
-                    const newContent = searchReplace(existing.content, op.search, op.replace);
+// export const FilePlanSchema = z.object({
+//     files: z.array(
+//         z.object({
+//             path: z.string(),
+//             description: z.string(),
+//             exports: z.string().optional().default(""),
+//             imports: z.array(z.string()).optional().default([]),
+//         })
+//     ),
+//     projectName: z.string().default('Generated Project'),
+//     projectDescription: z.string().default('A React project')
+// })
 
-                    if (newContent === null) {
-                        errors.push(`update ${op.path}: search string not found`);
-                        break;
-                    }
+// export const FileCodeSchema = z.object({
+//     code: z.string(),
+// })
 
-                    files[op.path] = {
-                        content: newContent,
-                        hash: hashContent(newContent),
-                    };
-                    applied.push(`updated ${op.path}`);
-                    break;
-                }
+import { z } from "zod";
 
-                case "delete": {
-                    if (files[op.path]) {
-                        delete files[op.path];
-                        applied.push(`deleted ${op.path}`);
-                    } else {
-                        errors.push(`delete ${op.path}: file not found`);
-                    }
-                    break;
-                }
+// --- System Prompts ---
 
-                default:
-                    errors.push(`unknown op: ${op.op}`);
-            }
-        } catch (err) {
-            errors.push(`${op.op} ${op.path}: ${err.message}`);
-        }
-    }
+export const FILE_PLAN_SYSTEM = `
+You are an expert full-stack React developer and software architect.
+Your job is to break down a user's web app request into a structured execution plan.
+Analyze the user request and list all necessary component, style, and utility files required for a complete, production-ready React application.
+Ensure you always include entry point files (such as App.jsx or App.js).
+`;
 
-    return { files, applied, errors };
-}
+export const REVISE_SYSTEM = `
+You are an expert React developer specializing in code refactoring and incremental revisions.
+Analyze the user's request alongside the current state of the project files.
+Generate specific operations (create, update, delete) to satisfy the requested changes cleanly and efficiently without breaking existing dependencies.
+`;
 
-// Search and replace code with fallback whitespace normalization matching
-function searchReplace(content, search, replace) {
-    // 1. Try exact match
-    if (content.includes(search)) {
-        return content.replace(search, () => replace);
-    }
+// --- Zod Schemas ---
 
-    // 2. Try with normalized whitespace (collapse multiple spaces/tabs, trim lines)
-    const normalizeWs = (s) =>
-        s
-            .split("\n")
-            .map((line) => line.replace(/\s+/g, " ").trim())
-            .join("\n")
-            .trim();
+export const GenerationResultSchema = z.object({
+  files: z.record(z.string(), z.string()),
+  description: z.string().default('Generated project')
+});
 
-    const normalizedContent = normalizeWs(content);
-    const normalizedSearch = normalizeWs(search);
+export const FileOpSchema = z.object({
+  op: z.enum(["create", "update", "delete"]),
+  path: z.string(),
+  content: z.string().nullable().optional(),
+  search: z.string().nullable().optional(),
+  replace: z.string().nullable().optional(),
+});
 
-    if (normalizedContent.includes(normalizedSearch)) {
-        // Find the original substring by matching line-by-line
-        const searchLines = normalizedSearch.split("\n");
-        const contentLines = content.split("\n");
+export const RevisionResultSchema = z.object({
+  operations: z.array(FileOpSchema),
+  description: z.string().default('Applied revisions')
+});
 
-        for (let i = 0; i <= contentLines.length - searchLines.length; i++) {
-            let match = true;
-            for (let j = 0; j < searchLines.length; j++) {
-                if (normalizeWs(contentLines[i + j]) !== searchLines[j]) {
-                    match = false;
-                    break;
-                }
-            }
-            if (match) {
-                const before = contentLines.slice(0, i);
-                const after = contentLines.slice(i + searchLines.length);
-                return [...before, replace, ...after].join("\n");
-            }
-        }
-    }
+export const FilePlanSchema = z.object({
+  files: z.array(
+    z.object({
+      path: z.string(),
+      description: z.string(),
+      exports: z.string().optional().default(""),
+      imports: z.array(z.string()).optional().default([]),
+    })
+  ),
+  projectName: z.string().default('Generated Project'),
+  projectDescription: z.string().default('A React project')
+});
 
-    return null;
-}
+export const FileCodeSchema = z.object({
+  code: z.string(),
+});

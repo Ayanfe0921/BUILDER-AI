@@ -1,32 +1,136 @@
-// Fix double-escaped newlines/quotes from AI JSON string output
-export function normalizeContent(content) {
-    if (!content) return "";
+import crypto from "crypto";
 
-    // Remove BOM if present
-    if (content.charCodeAt(0) === 0xfeff) {
-        content = content.slice(1);
+export function hashContent(content) {
+    return crypto.createHash("md5").update(content).digest("hex").slice(0, 12);
+}
+
+// Apply AI file operations (create, update, delete) to project files
+export function applyOperations(currentFiles, operations) {
+    const files = { ...currentFiles };
+    const applied = [];
+    const errors = [];
+
+    for (const op of operations) {
+        try {
+            switch (op.op) {
+                case "create": {
+                    if (!op.content) {
+                        errors.push(`create ${op.path}: missing content`);
+                        break;
+                    }
+                    files[op.path] = {
+                        content: op.content,
+                        hash: hashContent(op.content),
+                    };
+                    applied.push(`created ${op.path}`);
+                    break;
+                }
+
+                case "update": {
+                    const existing = files[op.path];
+                    if (!existing) {
+                        errors.push(`update ${op.path}: file not found`);
+                        break;
+                    }
+                    if (!op.search || op.replace == null) {
+                        errors.push(`update ${op.path}: missing search/replace`);
+                        break;
+                    }
+
+                    const newContent = searchReplace(existing.content, op.search, op.replace);
+
+                    if (newContent === null) {
+                        errors.push(`update ${op.path}: search string not found`);
+                        break;
+                    }
+
+                    files[op.path] = {
+                        content: newContent,
+                        hash: hashContent(newContent),
+                    };
+                    applied.push(`updated ${op.path}`);
+                    break;
+                }
+
+                case "delete": {
+                    if (files[op.path]) {
+                        delete files[op.path];
+                        applied.push(`deleted ${op.path}`);
+                    } else {
+                        errors.push(`delete ${op.path}: file not found`);
+                    }
+                    break;
+                }
+
+                default:
+                    errors.push(`unknown op: ${op.op}`);
+            }
+        } catch (err) {
+            errors.push(`${op.op} ${op.path}: ${err.message}`);
+        }
     }
 
-    // Normalize \r\n to \n
-    content = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    return { files, applied, errors };
+}
 
-    const realNewlines = (content.match(/\n/g) || []).length;
-    const literalBackslashN = (content.match(/\\n/g) || []).length;
-
-    if (literalBackslashN > realNewlines) {
-        // Triple-escaped first: \\\\n → \\n (leave as literal), then \\n → \n
-        content = content
-            .replace(/\\\\n/g, "%%PRESERVED_ESCAPED_N%%")
-            .replace(/\\n/g, "\n")
-            .replace(/%%PRESERVED_ESCAPED_N%%/g, "\\n")
-            .replace(/\\t/g, "\t")
-            .replace(/\\r/g, "")
-            .replace(/\\\\/g, "\\");
+// Search and replace code with fallback whitespace normalization matching
+function searchReplace(content, search, replace) {
+    // 1. Try exact match
+    if (content.includes(search)) {
+        return content.replace(search, () => replace);
     }
 
-    // Always clean up backslash-escaped quotes (e.g. className=\"relative\") in code.
-    // This is safe because "contains escaped quotes" is always invalid syntax in JSX/React.
-    content = content.replace(/(\w+)=\\"([^"]*?)\\"/g, '$1="$2"');
+    // 2. Try with normalized whitespace (collapse multiple spaces/tabs, trim lines)
+    const normalizeWs = (s) =>
+        s
+            .split("\n")
+            .map((line) => line.replace(/\s+/g, " ").trim())
+            .join("\n")
+            .trim();
 
-    return content;
+    const normalizedContent = normalizeWs(content);
+    const normalizedSearch = normalizeWs(search);
+
+    if (normalizedContent.includes(normalizedSearch)) {
+        // Find the original substring by matching line-by-line
+        const searchLines = normalizedSearch.split("\n");
+        const contentLines = content.split("\n");
+
+        for (let i = 0; i <= contentLines.length - searchLines.length; i++) {
+            let match = true;
+            for (let j = 0; j < searchLines.length; j++) {
+                if (normalizeWs(contentLines[i + j]) !== searchLines[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                const before = contentLines.slice(0, i);
+                const after = contentLines.slice(i + searchLines.length);
+                return [...before, replace, ...after].join("\n");
+            }
+        }
+    }
+
+    return null;
+}
+// Add this at the bottom of services/diff.js
+
+export function buildFileCodeSystem(fileInfo, allFiles = []) {
+    const existingFilesList = allFiles.length > 0
+        ? `Existing files in project:\n${allFiles.map(f => `- ${f.path || f}`).join('\n')}`
+        : '';
+
+    return `You are an expert React and Web Developer.
+ Your task is to write complete, fully working code for the requested file: "${fileInfo.path}".
+
+  ${fileInfo.description ? `File details: ${fileInfo.description}` : ''}
+  ${fileInfo.imports ? `Expected imports/dependencies: ${fileInfo.imports.join(', ')}` : ''}
+
+    ${existingFilesList}
+
+   Requirements:
+  1. Provide only valid code suitable for this file extension.
+  2. Output modern, functional React or JavaScript code.
+  3. Ensure proper imports and exports line up with project requirements.`;
 }

@@ -1,6 +1,6 @@
 import { Project } from "../models/Project.js"
 import { reviseProject } from "../services/ai.js"
-import { applyOperations } from "../services/prompts.js";
+import { applyOperations } from "../services/diff.js";
 
 export function buildManifest(files){
     const manifest = [];

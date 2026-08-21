@@ -243,9 +243,7 @@ export async function updateProjectFiles(req, res){
 
   const filesObj = {};
    for (const [path, entry] of Object.entries(project.files)) {
-    if(typeof content === "String"){
       filesObj[path] = entry.content;
-    }
  } 
 
  res.json({

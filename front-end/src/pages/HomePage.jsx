@@ -71,7 +71,7 @@ const HomePage = () => {
           </div>
 
           {/* All projects */}
-          {/* {!loadingProjects && projects.length > 0 && (
+          {!loadingProjects && projects.length > 0 && (
             <div className="mt-12 w-full">
 
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
@@ -113,10 +113,10 @@ const HomePage = () => {
                  ))}
               </div>
             </div>
-          )} */}
+          )}
 
           {/* All projects */}
-          {!loadingProjects && projects.length > 0 && (
+          {/* {!loadingProjects && projects.length > 0 && (
             <div className="mt-12 w-full">
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
                 <p className='text-xs font-medium uppercase text-zinc-100 tracking-widest'>All Projects</p>
@@ -146,7 +146,7 @@ const HomePage = () => {
                     </div>
 
                     {/* Removed duplicate group class from this container */}
-                    <div className='flex items-center gap-2'>
+                    {/* <div className='flex items-center gap-2'>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -164,7 +164,7 @@ const HomePage = () => {
                 ))}
               </div>
             </div>
-          )}
+          )} */} 
 
         </div>
       </div>
